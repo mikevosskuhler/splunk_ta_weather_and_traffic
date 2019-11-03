@@ -20,7 +20,13 @@ class location:
         LocationAddressEncoded = urllib.parse.quote(LocationAddress.lower())
         TomTomURL = f"https://api.tomtom.com/search/2/geocode/{LocationAddressEncoded}.json"
         TomTomQuery = {"storeResult":"false","limit":"1","key":self.TomTomKey}
-        self.TomTomLocation = requests.request("GET", TomTomURL, params=TomTomQuery)
+        try:
+            self.TomTomLocation = requests.request("GET", TomTomURL, params=TomTomQuery)
+        except:
+            print('Unable to connect to the TomTomAPI')
+            sys.exit()
+        if not self.TomTomLocation:
+            raise Exception(f'Received error from server:{self.TomTomLocation}')
         self.LocationLat = self.TomTomLocation.json()["results"][0]["position"]["lat"]
         self.LocationLon = self.TomTomLocation.json()["results"][0]["position"]["lon"]
 
@@ -37,8 +43,8 @@ class location:
             raise Exception(f'Received error from server:{WeatherCurrent.text}')
         return WeatherCurrent
 
-test = location(LocationAddress, WeatherKey, TomTomKey)
-print(test.WeatherCurrent().json())
+WeatherCurrent = location(LocationAddress, WeatherKey, TomTomKey)
+print(WeatherCurrent.WeatherCurrent().json())
 # TomTomURL = f"https://api.tomtom.com/search/2/geocode/{LocationAddressEncoded}.json"
 #
 # TomTomQuery = {"storeResult":"false","limit":"1","key":"ZCiCzz3SIiuzxCi12Txt50jwBbW3jgOf"}
