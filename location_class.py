@@ -43,8 +43,12 @@ class location:
             raise Exception(f'Received error from server:{WeatherCurrent.text}')
         return WeatherCurrent
 
-WeatherCurrent = location(LocationAddress, WeatherKey, TomTomKey)
-print(WeatherCurrent.WeatherCurrent().json())
+WeatherCurrent = location(LocationAddress, WeatherKey, TomTomKey).WeatherCurrent()
+CurrentTemperature = WeatherCurrent.json()["main"]["temp"]
+CurrentCloudiness = WeatherCurrent.json()["clouds"]["all"]
+print(f"It is currently {CurrentTemperature} degrees Celcius and\
+ {CurrentCloudiness} percent cloudy.")
+
 # TomTomURL = f"https://api.tomtom.com/search/2/geocode/{LocationAddressEncoded}.json"
 #
 # TomTomQuery = {"storeResult":"false","limit":"1","key":"ZCiCzz3SIiuzxCi12Txt50jwBbW3jgOf"}
