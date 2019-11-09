@@ -1,11 +1,14 @@
 #!/home/mike/Documents/python_envs/location_information_inputs/bin/python3
 import requests
 import sys
-import urllib.parse
+try:
+    from urllib.parse import quote
+except:
+    from urllib import quote
 from keys import WeatherKey, TomTomKey
 
 '''
-Credentials are imported from a keys files containing key values like this:
+Credentials are imported from a keys file containing key values like this:
 WeatherKey = <openweathermap api key>
 TomTomKey = <tomtom api key>
 '''
@@ -13,12 +16,11 @@ LocationAddress = "antwerpen"
 
 
 class location:
-    def __init__(self, LocationAddress, WeatherKey, TomTomKey):
+    def __init__(self, LocationAddress, TomTomKey):
         self.LocationAddress = LocationAddress
-        self.WeatherKey = WeatherKey
         self.TomTomKey = TomTomKey
-        LocationAddressEncoded = urllib.parse.quote(LocationAddress.lower())
-        TomTomURL = f"https://api.tomtom.com/search/2/geocode/{LocationAddressEncoded}.json"
+        LocationAddressEncoded = quote(LocationAddress.lower())
+        TomTomURL = "https://api.tomtom.com/search/2/geocode/"+LocationAddressEncoded+".json"
         TomTomQuery = {"storeResult":"false","limit":"1","key":self.TomTomKey}
         try:
             self.TomTomLocation = requests.request("GET", TomTomURL, params=TomTomQuery)
@@ -26,64 +28,29 @@ class location:
             print('Unable to connect to the TomTomAPI')
             sys.exit()
         if not self.TomTomLocation:
-            raise Exception(f'Received error from server:{self.TomTomLocation}')
+            raise Exception("Received error from server:"+self.TomTomLocation)
         self.LocationLat = self.TomTomLocation.json()["results"][0]["position"]["lat"]
         self.LocationLon = self.TomTomLocation.json()["results"][0]["position"]["lon"]
+        self.Address = self.TomTomLocation.json()["results"][0]["address"]["freeformAddress"]
 
-    def WeatherCurrent(self):
+class currentweather:
+    def __init__(self, location, WeatherKey):
         WeatherURL = "https://api.openweathermap.org/data/2.5/weather"
-        WeatherQuery = {"lat":self.LocationLat,"lon":self.LocationLon,"appid":WeatherKey,"units":"metric"}
+        WeatherQuery = {"lat":location.LocationLat,"lon":location.LocationLon,"appid":WeatherKey,"units":"metric"}
         try:
             WeatherCurrent = requests.request("GET", WeatherURL, params=WeatherQuery)
         except:
             print('Unable to connect to the OpenWeatherAPI')
             sys.exit()
-
         if not WeatherCurrent:
-            raise Exception(f'Received error from server:{WeatherCurrent.text}')
-        return WeatherCurrent
-
-WeatherCurrent = location(LocationAddress, WeatherKey, TomTomKey).WeatherCurrent()
-CurrentTemperature = WeatherCurrent.json()["main"]["temp"]
-CurrentCloudiness = WeatherCurrent.json()["clouds"]["all"]
-if CurrentCloudiness==0:
-    CurrentRainfall=0
-elif not WeatherCurrent.json()["rain"]:
-    CurrentRainfall = 0
-else:
-    CurrentRainfall = WeatherCurrent.json()["rain"]["1h"]
-
-
-
-# CurrentRainfall = WeatherCurrent.json()["rain"]
-print(f"It is currently {CurrentTemperature} degrees Celcius,\
- {CurrentCloudiness} percent cloudy, and we have received {CurrentRainfall}\
- mm of rain")
-
-# print(WeatherCurrent.text)
-
-# TomTomURL = f"https://api.tomtom.com/search/2/geocode/{LocationAddressEncoded}.json"
-#
-# TomTomQuery = {"storeResult":"false","limit":"1","key":"ZCiCzz3SIiuzxCi12Txt50jwBbW3jgOf"}
-#
-# TomTomLocation = requests.request("GET", TomTomURL, params=TomTomQuery)
-#
-# LocationLat = TomTomLocation.json()["results"][0]["position"]["lat"]
-# LocationLon = TomTomLocation.json()["results"][0]["position"]["lon"]
-#
-# print(f"coordinates are: {LocationLat}, {LocationLon}")
-
-# WeatherURL = "https://api.openweathermap.org/data/2.5/weather"
-#
-# WeatherQuery = {f"lat":"52.1561113","lon":"5.3878266","appid":{WeatherKey},"units":"metric"}
-#
-# try:
-#     WeatherCurrent = requests.request("GET", WeatherURL, params=WeatherQuery)
-# except:
-#     print('Unable to connect to the OpenWeatherAPI')
-#     sys.exit()
-#
-# if not WeatherCurrent:
-#     raise Exception(f'Received error from server:{WeatherCurrent.text}')
-# print(WeatherCurrent)
-# print(WeatherCurrent.text)
+            raise Exception("Received error from server:"+WeatherCurrent.text)
+        self.AllInfo = WeatherCurrent.json()
+        self.Temperature = self.AllInfo["main"]["temp"]
+        self.Cloudiness = self.AllInfo["clouds"]["all"]
+        self.Description = self.AllInfo["weather"][0]["description"]
+        if self.Cloudiness==0:
+            self.Rainfall=0
+        try:
+            self.Rainfall = self.Rainfall = self.AllInfo["rain"]["1h"]
+        except:
+            self.Rainfall = 0
