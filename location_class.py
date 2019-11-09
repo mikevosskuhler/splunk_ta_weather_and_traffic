@@ -9,7 +9,7 @@ Credentials are imported from a keys files containing key values like this:
 WeatherKey = <openweathermap api key>
 TomTomKey = <tomtom api key>
 '''
-LocationAddress = "Beatrijspad 47 Amersfoort Nederland"
+LocationAddress = "antwerpen"
 
 
 class location:
@@ -46,8 +46,21 @@ class location:
 WeatherCurrent = location(LocationAddress, WeatherKey, TomTomKey).WeatherCurrent()
 CurrentTemperature = WeatherCurrent.json()["main"]["temp"]
 CurrentCloudiness = WeatherCurrent.json()["clouds"]["all"]
-print(f"It is currently {CurrentTemperature} degrees Celcius and\
- {CurrentCloudiness} percent cloudy.")
+if CurrentCloudiness==0:
+    CurrentRainfall=0
+elif not WeatherCurrent.json()["rain"]:
+    CurrentRainfall = 0
+else:
+    CurrentRainfall = WeatherCurrent.json()["rain"]["1h"]
+
+
+
+# CurrentRainfall = WeatherCurrent.json()["rain"]
+print(f"It is currently {CurrentTemperature} degrees Celcius,\
+ {CurrentCloudiness} percent cloudy, and we have received {CurrentRainfall}\
+ mm of rain")
+
+# print(WeatherCurrent.text)
 
 # TomTomURL = f"https://api.tomtom.com/search/2/geocode/{LocationAddressEncoded}.json"
 #
