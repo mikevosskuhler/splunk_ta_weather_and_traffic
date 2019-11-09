@@ -2,7 +2,7 @@
 from location_class import location, currentweather
 from keys import WeatherKey, TomTomKey
 
-LocationAddress = "Beatrijspad 47 Amersfoort Nederland"
+LocationAddress = "Amersfoort"
 
 Location = location(LocationAddress, TomTomKey)
 print(Location.Address)
